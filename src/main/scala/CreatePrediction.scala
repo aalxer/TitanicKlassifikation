@@ -1,8 +1,7 @@
-package titanic
+import titanic.{NaiveBayes, TitanicDataSet, Utils}
 
 object CreatePrediction extends App{
 
-  // load datasets
   val train = Utils.loadDataCSV("train.csv")
   val test = Utils.loadDataCSV("test.csv")
 

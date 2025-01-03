@@ -1,6 +1,6 @@
 package mapreduce
 
-object BasicOperations {
+object MapReduceOperations {
 
   def mapper[KeyIn ,ValueIn, KeyMOut, ValueMOut](mapFun:((KeyIn,ValueIn))=>List[(KeyMOut,ValueMOut)],
                                                  data:List[(KeyIn, ValueIn)]):List[(KeyMOut,ValueMOut)]={

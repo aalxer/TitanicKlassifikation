@@ -1,4 +1,4 @@
-package titanic
+import titanic.{NaiveBayes, TitanicDataSet, Utils}
 
 object CreatePredictionSimpleModel extends App{
 

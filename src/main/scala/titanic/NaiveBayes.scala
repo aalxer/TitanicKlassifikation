@@ -1,6 +1,6 @@
 package titanic
 
-import mapreduce.BasicOperations.mapReduce
+import mapreduce.MapReduceOperations.mapReduce
 
 object NaiveBayes {
 
