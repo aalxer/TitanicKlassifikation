@@ -1,18 +1,14 @@
 package titanic
 
 import java.io.PrintWriter
-
 import scala.util.Try
 
 
 object Utils {
 
-  // Regular Expressions for extracting the information
   val DATA_ACCESS_PATTERN_test = """(\d+),(\d),"(.+)",(male|female),([0-9]*\.[0-9]+|[0-9]+|d*),(\d*),(\d*),(.*),([0-9]*\.[0-9]+|[0-9]+|d*),(.*),(\w*)""".r
   val DATA_ACCESS_PATTERN_train = """(\d+),(\d),(\d),"(.+)",(male|female),([0-9]*\.[0-9]+|[0-9]+|d*),(\d*),(\d*),(.*),([0-9]*\.[0-9]+|[0-9]+|d*),(.*),(\w*)""".r
 
-  // Reading text file
-  // Stores the information in a map consisting of a property name (key) and its value
   def loadDataCSV(filename: String): List[Map[String, Any]] = {
 
     val stream = getClass.getResourceAsStream("/" + filename)
@@ -26,7 +22,6 @@ object Utils {
   }
 
 
-  // Extracting all information storing it into a Map[String,Any]
   def readData(line: String): Option[Map[String, Any]] = {
 
     def toInt(key: String, s: String): Option[(String, Int)] = Try(s.toInt).toOption.map((key, _))
@@ -69,7 +64,6 @@ object Utils {
     result
   }
 
-  // Method for printing a passenger in a readable manner
   def printPassenger(p: Map[String, Any]): Unit = {
 
     println("\n---------------------------------------------------------------------")

@@ -1,19 +1,6 @@
 package titanic
 
-import titanic.NaiveBayes.findBestFittingClass
-
 object TitanicDataSet {
-
-
-  /**
-   * Creates a model that predicts 1 (survived) if the person of the certain record
-   * is female and 0 (deceased) otherwise
-   *
-   * @return The model represented as a function
-   */
-  def simpleModel: (Map[String, Any], String) => (Any, Any) = {
-    (map, passengerID) => (map(passengerID), if(map("sex") == "female") 1 else 0)
-  }
 
   /**
    * This function should count for a given attribute list, how often an attribute is
@@ -57,16 +44,13 @@ object TitanicDataSet {
    */
   def createDataSetForTraining(data: List[Map[String, Any]]): List[Map[String, Any]] = {
 
-    val attributes = List("passengerID","sex", "age", "pclass", "survived")
+    val attributes = List("passengerID", "sex", "age", "pclass", "survived")
     val preparedData = data.map(passenger => passenger.get("age") match {
       case Some(age) => passenger.updated("age", this.categorizeAge(age.asInstanceOf[Float]))
       case None =>
-        passenger.updated("age",this.predictAge(passenger, data))
-        //passenger.updated("age",5)
+        passenger.updated("age", this.predictAge(passenger, data))
     })
     preparedData.map(passenger => this.extractTrainingAttributes(passenger, attributes))
-
-
   }
 
   def categorizeAge(age: Any): Int = {
@@ -84,20 +68,15 @@ object TitanicDataSet {
   }
 
   def predictAge(passenger: Map[String, Any], data: List[Map[String, Any]]): Int = {
-    // alle die keinen Alter haben entfernen:
-    data.filter(_.getOrElse("age",0) != 0).map(passenger =>
-      // nur die Keys "pclass", "age", "fare" behalten:
-      this.extractTrainingAttributes(passenger, List("pclass", "age", "fare"))).
-      // die Map in Tupel umwandeln und Alter kategorisieren:
+
+    data.filter(_.getOrElse("age", 0) != 0).
+      map(passenger => this.extractTrainingAttributes(passenger, List("pclass", "age", "fare"))).
       map(x => (x("pclass"), this.categorizeAge(x("age")), x.getOrElse("fare", 0.0))).
-      // groupieren nach (Klasse , Alter):
       groupBy(tupel => (tupel._1, tupel._2)).
-      // durchschnittlicher Preis für die Altargruppe und Klasse ermittle:
-      map(x => (x._1._1, x._1._2, x._2.map(y => y._3.toString.toDouble).sum/x._2.size)).
-      // die Klasse und der bezahle Preis werden verglichen:
+      map(x => (x._1._1, x._1._2, x._2.map(y => y._3.toString.toDouble).sum / x._2.size)).
       foldLeft(1)((base, x) => {
         //println(passenger , "current base: " , base , "current tupel: " , x)
-        if(passenger("pclass") == x._1 && (passenger("fare").asInstanceOf[Float] - x._3).abs <= 1 ) x._2
+        if (passenger("pclass") == x._1 && (passenger("fare").asInstanceOf[Float] - x._3).abs <= 1) x._2
         //else if ((passenger("fare").asInstanceOf[Double] - x._3).abs <= 3) x._2
         else base
       })
@@ -112,18 +91,25 @@ object TitanicDataSet {
    * @param classAttrib  name of the attribute that contains the class
    * @return A tuple consisting of the id (first element) and the predicted class (second element)
    */
-  def createModelWithTitanicTrainingData(tdata: List[Map[String, Any]], classAttrib: String):
-  (Map[String, Any], String) => (Any, Any) = {
+  def createModelWithTitanicTrainingData(tdata: List[Map[String, Any]],
+                                         classAttrib: String): (Map[String, Any], String) => (Any, Any) = {
+
+    // Training Step-1:
     val trainingData = this.createDataSetForTraining(tdata)
 
-    val classVals= NaiveBayes.countAttributeValues(trainingData,classAttrib)
-    val data= NaiveBayes.calcAttribValuesForEachClass(trainingData,classAttrib)
-    val condProp = NaiveBayes.calcConditionalPropabilitiesForEachClass(data,classVals)
-    val prior= NaiveBayes.calcPriorPropabilities(trainingData,classAttrib)
+    // Training Step-2:
+    val prior = NaiveBayes.calcPriorPropabilities(trainingData, classAttrib)
 
+    // Training Step-3:
+    val data = NaiveBayes.calcAttribValuesForEachClass(trainingData, classAttrib)
+    val classVals = NaiveBayes.countAttributeValues(trainingData, classAttrib)
+    val condProp = NaiveBayes.calcConditionalPropabilitiesForEachClass(data, classVals)
+
+    // Modell zum Anwenden zurückgeben:
     (record, idKey) => {
       val preparedRecord = extractTrainingAttributes(record, List("age", "sex", "pclass"))
-      val classPrediction = NaiveBayes.findBestFittingClass(NaiveBayes.calcClassValuesForPrediction(preparedRecord, condProp, prior))
+      val classValues = NaiveBayes.calcClassValuesForPrediction(preparedRecord, condProp, prior)
+      val classPrediction = NaiveBayes.findBestFittingClass(classValues)
       (record(idKey), classPrediction)
     }
 
